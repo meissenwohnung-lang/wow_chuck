@@ -3,19 +3,11 @@ local ADDON, ns = ...
 -- Kleine Konfigurationsoberfläche + Minimap-Symbol (ohne externe Bibliotheken).
 -- Schlägt der Aufbau fehl, bleiben die /chuck-Befehle voll nutzbar.
 
-local OPTIONS = {
-    -- { Schlüssel in ChuckNorrisDB, Text }
-    { "events", "Sprüche bei Ereignissen (Epic, Boss, Quest, ...)" },
-    { "login", "Fakt beim Einloggen" },
-    { "death", "Spruch beim Tod (nur für dich)" },
-    { "levelup", "Spruch beim Levelaufstieg" },
-    { "pdeath", "Todes-Spruch in den Gruppenchat (/p, /i, /raid)" },
-    { "gboss", "Boss-Sieg und Wipe in den Gruppenchat" },
-}
+local OPTIONS = { "events", "login", "death", "levelup", "pdeath", "gboss" } -- Texte: ns.L.OPT
 
 local atan2 = math.atan2 or math.atan
 local panel, button
-local checks = {}
+local checks, texts = {}, {}
 
 local function Print(text) print("|cffffd24dChuck Norris|r: " .. text) end
 
@@ -68,9 +60,9 @@ local function CreateMinimapButton()
         GameTooltip:SetOwner(self, "ANCHOR_LEFT")
         GameTooltip:SetText("Chuck Norris Facts", 1, 0.82, 0.3)
         GameTooltip:AddLine("by Solomon · Designed for Selo^^", 0.8, 0.85, 0.9)
-        GameTooltip:AddLine("Linksklick: Einstellungen", 0.5, 1, 0.5)
-        GameTooltip:AddLine("Rechtsklick: Fakt-Fenster", 0.5, 1, 0.5)
-        GameTooltip:AddLine("Ziehen: Symbol verschieben", 0.7, 0.7, 0.7)
+        GameTooltip:AddLine(ns.L.TT_LEFT, 0.5, 1, 0.5)
+        GameTooltip:AddLine(ns.L.TT_RIGHT, 0.5, 1, 0.5)
+        GameTooltip:AddLine(ns.L.TT_DRAG, 0.7, 0.7, 0.7)
         GameTooltip:Show()
     end)
     button:SetScript("OnLeave", function() GameTooltip:Hide() end)
@@ -95,14 +87,26 @@ end
 local Config = {}
 ns.Config = Config
 
+function Config:Retranslate()
+    if not panel then return end
+    for key, fs in pairs(texts) do
+        if key == "minimap" then fs:SetText(ns.L.MINIMAP_SHOW)
+        elseif key == "lang" then fs:SetText(ns.L.LANGUAGE .. ": " .. ns.L.LANG_NAME)
+        else fs:SetText(ns.L.OPT[key]) end
+    end
+    if panel.b1 then panel.b1:SetText(ns.L.WINDOW) end
+    if panel.b2 then panel.b2:SetText(ns.L.CHAT_QUIP) end
+end
+
 function Config:Refresh()
     if not panel then return end
+    Config:Retranslate()
     for key, cb in pairs(checks) do cb:SetChecked(ChuckNorrisDB[key] and true or false) end
     if checks.minimap then checks.minimap:SetChecked(not ChuckNorrisDB.minimap.hide) end
 end
 
 local function CreatePanel()
-    local h = 120 + (#OPTIONS + 1) * 26 + 40
+    local h = 120 + (#OPTIONS + 1) * 26 + 40 + 34
     panel = CreateFrame("Frame", "ChuckNorrisConfig", UIParent, "BackdropTemplate")
     panel:SetSize(400, h)
     panel:SetPoint("CENTER")
@@ -128,35 +132,46 @@ local function CreatePanel()
     close:SetPoint("TOPRIGHT", 2, 2)
 
     local y = -60
-    local function Check(key, text, onClick)
+    local function Check(key, onClick)
         local cb = CreateFrame("CheckButton", nil, panel, "UICheckButtonTemplate")
         cb:SetSize(26, 26)
         cb:SetPoint("TOPLEFT", 12, y)
         y = y - 26
         local fs = cb:CreateFontString(nil, "ARTWORK", "GameFontHighlight")
         fs:SetPoint("LEFT", cb, "RIGHT", 4, 0)
-        fs:SetText(text)
+        texts[key] = fs
         cb:SetScript("OnClick", function(self) onClick(self:GetChecked() and true or false) end)
         checks[key] = cb
     end
-    for _, o in ipairs(OPTIONS) do
-        Check(o[1], o[2], function(v) ChuckNorrisDB[o[1]] = v end)
+    for _, key in ipairs(OPTIONS) do
+        Check(key, function(v) ChuckNorrisDB[key] = v end)
     end
-    Check("minimap", "Minimap-Symbol anzeigen", function(v)
+    Check("minimap", function(v)
         ChuckNorrisDB.minimap.hide = not v
         PlaceButton()
     end)
 
+    -- Sprache umschalten (Knopf)
+    local bl = CreateFrame("Button", nil, panel, "UIPanelButtonTemplate")
+    bl:SetSize(150, 24)
+    bl:SetPoint("TOPLEFT", 14, y - 8)
+    texts.lang = bl
+    bl:SetText("")
+    bl:SetScript("OnClick", function()
+        ns.SetLang(ns.lang == "de" and "en" or "de")
+    end)
+    y = y - 34
+
     local b1 = CreateFrame("Button", nil, panel, "UIPanelButtonTemplate")
     b1:SetSize(150, 24)
     b1:SetPoint("TOPLEFT", 14, y - 12)
-    b1:SetText("Fakt-Fenster")
+    panel.b1 = b1
     b1:SetScript("OnClick", function() if ns.ShowWindow then ns.ShowWindow() end end)
 
     local b2 = CreateFrame("Button", nil, panel, "UIPanelButtonTemplate")
     b2:SetSize(150, 24)
     b2:SetPoint("LEFT", b1, "RIGHT", 10, 0)
-    b2:SetText("Spruch im Chat")
+    panel.b2 = b2
     b2:SetScript("OnClick", function() Print(ns.NextFact()) end)
 
     panel:SetScript("OnShow", function() Config:Refresh() end)
@@ -166,11 +181,13 @@ end
 
 function Config:Toggle()
     if not panel then
-        Print("Einstellungen nicht verfügbar. /chuck help zeigt alle Befehle.")
+        Print(ns.L.CFG_UNAVAILABLE)
         return
     end
     if panel:IsShown() then panel:Hide() else panel:Show() end
 end
+
+ns.OnLang(function() if ns.Config then ns.Config:Retranslate() end end)
 
 function Config:Create()
     local ok = pcall(function()
@@ -180,7 +197,7 @@ function Config:Create()
         CreatePanel()
         CreateMinimapButton()
     end)
-    if not ok then Print("Einstellungsfenster konnte nicht aufgebaut werden.") end
+    if not ok then Print(ns.L.CFG_FAILED) end
 end
 
 function Config:ToggleMinimap()

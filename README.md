@@ -11,6 +11,7 @@ Den Ordner `ChuckNorrisFacts` (Inhalt dieses Repos) nach `World of Warcraft\_ret
 ## Befehle
 
 - `/chuck` – zufälliger Fakt im Chat
+- `/chuck lang de|en` – Sprache Deutsch/English (Standard: Spielsprache; auch im Einstellungsfenster)
 - `/chuck config` – Einstellungsfenster (auch per Minimap-Symbol); `/chuck minimap` – Symbol ein/aus
 - `/chuck window` – kleines Fenster mit „Nächster Fakt“
 - `/chuck say|party|guild|raid` – Fakt an den Chat senden
@@ -18,7 +19,11 @@ Den Ordner `ChuckNorrisFacts` (Inhalt dieses Repos) nach `World of Warcraft\_ret
 - `/chuck events` – Ereignis-Sprüche ein/aus; `/chuck gboss` – Boss-Sieg/Wipe auch in den Gruppenchat
 - `/chuck login|death|levelup` – jeweilige Sprüche ein/aus
 
-Neue Sprüche stehen in `Facts.lua` (`ns.FACTS`, `ns.EVENTS`, `ns.DEATH_CHAT`).
+Alle Sprüche gibt es auf Deutsch und Englisch. Neue Sprüche stehen in `Facts.lua` unter `ns.TEXT.de` und `ns.TEXT.en` (gleiche Reihenfolge/Anzahl pflegen), Oberflächentexte in `Locale.lua`.
+
+## Logo
+
+`assets/logo.svg` und `assets/logo-512.png` – eigenes Logo (Faust im Goldrahmen), für die CurseForge-Projektseite. Kein Foto und kein Blizzard-Material.
 
 ## Veröffentlichung (CurseForge / GitHub)
 

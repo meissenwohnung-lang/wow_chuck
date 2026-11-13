@@ -83,7 +83,7 @@ local function CreateWindow()
 
     win.title = win:CreateFontString(nil, "OVERLAY", "GameFontNormal")
     win.title:SetPoint("TOPLEFT", 10, -8)
-    win.title:SetText("Chuck Norris Facts |cff8a95a5by Solomon|r")
+    win.title:SetText("Chuck Norris Facts |cff8a95a5by Solomon|r")  -- Eigenname, bleibt in jeder Sprache
 
     win.text = win:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
     win.text:SetPoint("TOPLEFT", 12, -30)
@@ -98,7 +98,8 @@ local function CreateWindow()
     local next = CreateFrame("Button", nil, win, "UIPanelButtonTemplate")
     next:SetSize(130, 22)
     next:SetPoint("BOTTOMLEFT", 10, 10)
-    next:SetText("Nächster Fakt")
+    win.next = next
+    next:SetText(ns.L.NEXT)
     next:SetScript("OnClick", function() win.text:SetText(NextFact()) end)
 
     local credit = win:CreateFontString(nil, "OVERLAY", "GameFontDisableSmall")
@@ -113,6 +114,7 @@ local function ShowWindow()
     win:Show()
 end
 ns.ShowWindow = ShowWindow
+ns.OnLang(function() if win and win.next then win.next:SetText(ns.L.NEXT) end end)
 ns.NextFact = NextFact
 
 ---------------------------------------------------------------------------
@@ -137,6 +139,7 @@ ev:SetScript("OnEvent", function(_, event, arg1, arg2, arg3, arg4, arg5, _, _, _
         ChuckNorrisDB = ChuckNorrisDB or {}
         for k, v in pairs(defaults) do if ChuckNorrisDB[k] == nil then ChuckNorrisDB[k] = v end end
         math.randomseed(time())
+        ns.SetLang(ChuckNorrisDB.lang or ns.DefaultLang())
     elseif event == "PLAYER_LOGIN" then
         if ns.Config then ns.Config:Create() end
         if ChuckNorrisDB.login then Say(NextFact()) end
@@ -188,6 +191,14 @@ SlashCmdList["CHUCKNORRIS"] = function(msg)
     cmd = cmd:lower()
     if cmd == "" then
         Say(NextFact())
+    elseif cmd == "lang" or cmd == "language" or cmd == "sprache" then
+        local l = rest:lower()
+        if l == "de" or l == "en" then
+            ns.SetLang(l)
+            Say(ns.L.LANG_SET)
+        else
+            Say(ns.L.LANG_USAGE)
+        end
     elseif cmd == "config" or cmd == "options" or cmd == "settings" then
         if ns.Config then ns.Config:Toggle() end
     elseif cmd == "minimap" then
@@ -196,23 +207,15 @@ SlashCmdList["CHUCKNORRIS"] = function(msg)
         if win and win:IsShown() then win:Hide() else ShowWindow() end
     elseif CHANNELS[cmd] then
         local ok = pcall(SendChatMessage, "Chuck Norris Fact: " .. NextFact(), CHANNELS[cmd])
-        if not ok then Say("Senden nicht möglich.") end
+        if not ok then Say(ns.L.SEND_FAIL) end
     elseif cmd == "pdeath" and rest:lower() == "test" then
         ns.DeathChat()
     elseif cmd == "login" or cmd == "death" or cmd == "levelup" or cmd == "pdeath" or cmd == "events" or cmd == "gboss" then
         ChuckNorrisDB[cmd] = not ChuckNorrisDB[cmd]
-        Say(cmd .. ": " .. (ChuckNorrisDB[cmd] and "an" or "aus"))
+        Say(cmd .. ": " .. (ChuckNorrisDB[cmd] and ns.L.ON or ns.L.OFF))
     else
-        Say("Befehle:")
-        print("/chuck – zufälliger Fakt im Chat-Fenster")
-        print("/chuck config – Einstellungsfenster (auch per Minimap-Symbol); /chuck minimap – Symbol ein/aus")
-        print("/chuck window – kleines Fenster mit Knopf 'Nächster Fakt'")
-        print("/chuck say|party|guild|raid – Fakt an den Chat senden")
-        print("/chuck pdeath – bei deinem Tod einen Spruch in /p, /i oder /raid senden (ein/aus, max. alle 30 s)")
-        print("/chuck pdeath test – Spruch jetzt in den Gruppenchat senden")
-        print("/chuck events – Sprüche bei Ereignissen (Bereitschaftscheck, Epic, Boss, Wipe, Quest, Instanz, Reparatur, Duell) ein/aus")
-        print("/chuck gboss – Boss-Sieg/Wipe zusätzlich in den Gruppenchat (Standard: aus)")
-        print("/chuck login|death|levelup – Sprüche bei Login/Tod/Levelaufstieg ein/aus")
-        print("by Solomon · Designed for Selo^^")
+        for n, line in ipairs(ns.L.HELP) do
+            if n == 1 then Say(line) else print(line) end
+        end
     end
 end

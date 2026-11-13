@@ -1,11 +1,12 @@
 ## Interface: 16001
 ## Title: Chuck Norris Facts |cff8a95a5by Solomon|r
-## Notes: Zufällige Chuck-Norris-Fakten für WoW Forever. Designed for Selo^^
+## Notes: Zufällige Chuck-Norris-Fakten für WoW Forever (Deutsch/English). Random Chuck Norris facts for WoW Forever. Designed for Selo^^
 ## Author: Solomon
 ## X-Credits: Designed for Selo^^
-## Version: 0.4.0
+## Version: 0.5.0
 ## SavedVariables: ChuckNorrisDB
 
 Facts.lua
+Locale.lua
 Core.lua
 Config.lua

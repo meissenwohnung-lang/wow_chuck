@@ -1,0 +1,26 @@
+name: Release
+
+# Bei jedem Tag v* (z. B. v0.4.0) wird das Addon gepackt und veröffentlicht:
+# - GitHub Release (immer, mit GITHUB_TOKEN)
+# - CurseForge, sobald in der TOC "## X-Curse-Project-ID: <ID>" steht und
+#   das Repo-Secret CF_API_KEY gesetzt ist
+
+on:
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    env:
+      CF_API_KEY: ${{ secrets.CF_API_KEY }}
+      GITHUB_OAUTH: ${{ secrets.GITHUB_TOKEN }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: BigWigsMods/packager@v2

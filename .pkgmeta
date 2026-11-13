@@ -1,0 +1,6 @@
+package-as: ChuckNorrisFacts
+
+ignore:
+  - README.md
+  - LICENSE
+  - .github
